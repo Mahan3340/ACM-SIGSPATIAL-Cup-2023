@@ -21,7 +21,7 @@ python tools/train.py lakeSegConfig/LakeSegDataset_KNnetR_20231001.py
 
 # Inference the network
 Fill out the config_file and checkpoint_file.
-The checkpoint_file could be find at the work_dirs
+The checkpoint_file could be found at the work_dirs
 Then run
 ```python
 python inference.py
@@ -29,4 +29,7 @@ python inference.py
 
 # Processed dataset
 The processed dataset could be located at the data/geo_datasetsR
-The instructions are as follows:
+data_processing.ipynb file contains modules as follows:
+clip_regions: clip and padding targeted 6 lake regions from raw Geotiffs;
+label_regions: label each region tiff pixels
+clip_tiles: split region tiff and labels into small labels
