@@ -33,3 +33,7 @@ data_processing.ipynb file contains modules as follows:
 clip_regions: clip and padding targeted 6 lake regions from raw Geotiffs;
 label_regions: label each region tiff pixels
 clip_tiles: split region tiff and labels into small labels
+
+
+The prepare_data2pngReduced.py will generate the final dataset.
+The dataset should be organized as data/_geo_datasetsR
