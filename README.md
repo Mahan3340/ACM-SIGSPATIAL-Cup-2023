@@ -45,3 +45,4 @@ clip_tiles: split region tiff and labels into small labels
 
 The prepare_data2pngReduced.py will generate the final dataset.
 The dataset should be organized as data/_geo_datasetsR
+More details are in the python files.
