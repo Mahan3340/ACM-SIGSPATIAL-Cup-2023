@@ -28,8 +28,16 @@ python inference.py
 ```
 
 # Processed dataset
-The processed dataset could be located at the data/geo_datasetsR/
-data_processing.ipynb file contains modules as follows:/
-clip_regions: clip and padding targeted 6 lake regions from raw Geotiffs;/
-label_regions: label each region tiff pixels/
-clip_tiles: split region tiff and labels into small labels/
+The processed dataset could be located at the data/geo_datasetsR
+
+
+data_processing.ipynb file contains modules as follows:
+
+
+clip_regions: clip and padding targeted 6 lake regions from raw Geotiffs;
+
+
+label_regions: label each region tiff pixels
+
+
+clip_tiles: split region tiff and labels into small labels
