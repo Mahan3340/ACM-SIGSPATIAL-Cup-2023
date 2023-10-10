@@ -10,7 +10,7 @@ import geopandas as gpd
 import rasterio.plot
 
 path = "/home/Shared/competition/SupraglacialLakesDetection"
-def prediction(config_file, checkpoint_file, device, output_dir, infer = False,  plot = True):
+def prediction(config_file, checkpoint_file, device, output_dir, infer = False,  plot = False):
     model = init_model(config_file,checkpoint_file,device=device)
     if not os.path.exists(os.path.join(output_dir, 'testset-pred')):
         os.mkdir(os.path.join(output_dir, 'testset-pred'))
@@ -22,10 +22,8 @@ def prediction(config_file, checkpoint_file, device, output_dir, infer = False, 
     for index, row in test_df.iterrows():
         img, reg_num, shape = row["img"], row["reg_num"], row["shape"]
         tile_path = os.path.join(output_dir, 'testset-pred', f'pred-{img[:-4]}_region{reg_num}*.npy')
-        print(tile_path)
         # merge labels of tiles
         s = shape.split(",")
-        print(int(s[0][1:]), int(s[1][:-1]))
         region_mask = merge_tiles(tile_path, int(s[0][1:]), int(s[1][:-1]))
         #find polygons of regions
         regp = os.path.join(path, f"data/test/padding/{img[:-4]}_region{reg_num}.tif")
@@ -44,7 +42,8 @@ def prediction(config_file, checkpoint_file, device, output_dir, infer = False, 
                 
                 ax.scatter(geo_row, geo_col, color = "red", linewidths = 0.1, alpha = 0.5)
                 plt.savefig(os.path.join(output_dir, 'testset-pred', f'pred-{img[:-4]}_region{reg_num}_png*.png'))
-    results.to_file(os.path.join(path, "results.gpkg"), driver="GPKG")
+    results = gpd.GeoDataFrame(results).set_crs('epsg:3857')
+    results.to_file(os.path.join(path, "results_Knet_new.gpkg"), driver="GPKG")
 
 def process_single_img(img_path, model, save=False):
     print("img_path is: "+ img_path)
@@ -80,14 +79,29 @@ def merge_tiles(tile_path, img_height, img_width):
         t_list.append(tile_num)
         # print(s, tile_num)
         l = np.load(t) #model inference
-        row = tile_num // col_num
-        col = tile_num % col_num
+        # row = tile_num // col_num
+        # col = tile_num % col_num
+        col = tile_num // row_num
+        row = tile_num % row_num
         # print(row, col)
         t_list.append((row, col))
         np_list[row][col] = l
     merged_label = np.block(np_list)
     print(merged_label.shape)
     return merged_label
+
+# def find_poly(p, mask):
+#     merged_label = mask.astype(np.uint8)
+#     contours, _ = cv2.findContours(merged_label, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+#     polys = []
+#     for con in contours:
+#         if len(con) > 4:
+#             yy, xx = list(zip(*con.squeeze()))
+#             with rasterio.open(p) as reg_raster:
+#                 yy1, xx1 = reg_raster.xy(xx, yy)
+#                 poly = geometry.Polygon([[x, y] for x , y in zip(yy1, xx1)])
+#                 polys.append(poly)
+#     return polys
 
 def find_poly(p, mask):
     merged_label = mask.astype(np.uint8)
@@ -96,19 +110,21 @@ def find_poly(p, mask):
     for con in contours:
         if len(con) > 4:
             yy, xx = list(zip(*con.squeeze()))
+            
             with rasterio.open(p) as reg_raster:
                 yy1, xx1 = reg_raster.xy(xx, yy)
                 poly = geometry.Polygon([[x, y] for x , y in zip(yy1, xx1)])
+                # poly = geometry.Polygon([[y, x] for x , y in zip(yy1, xx1)])
                 polys.append(poly)
     return polys
 
 if __name__ == "__main__":
     path = "/home/Shared/competition/SupraglacialLakesDetection"
-    config_file = "/home/Shared/Segmentation/mmsegmentation/lakeSegConfig/LakeSegDataset_UNetR_20231001.py"
+    config_file = "/home/Shared/Segmentation/mmsegmentation/lakeSegConfig/LakeSegDataset_KNnetR_20231001.py"
 
-    checkpoint_file = "/home/Shared/Segmentation/mmsegmentation/work_dirs/LakeSeg-UNetR/best_mIoU_iter_39000.pth"
+    checkpoint_file = "/home/Shared/Segmentation/mmsegmentation/work_dirs/LakeSeg-KNet/best_mIoU_iter_15500.pth"
     device = 'cuda:0'
 
     test_df = pd.read_csv(os.path.join(path, "data/test_df.csv"))
-    output_dir = os.path.join(path, "output")
-    prediction(config_file, checkpoint_file, device, output_dir)
+    output_dir = os.path.join(path, "output_kNet")
+    prediction(config_file, checkpoint_file, device, output_dir, infer = False,  plot = False)
